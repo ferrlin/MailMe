@@ -9,11 +9,11 @@ import scala.concurrent.duration.FiniteDuration
  */
 // A wrapper to make it easy for Spring systems to use it
 @Service("amMailSupervisor")
-class MailSupervisorControl {
+class MailerSupervisorControl {
   val supervisor = MailerSupervisor
 
-  def start(mailCount: Int, waitTimeout: FiniteDuration): Unit = {
-    supervisor.start(mailCount, waitTimeout)
+  def start(mailerCount: Int, waitTimeout: FiniteDuration): Unit = {
+    supervisor.start(mailerCount, waitTimeout)
   }
 
   // Using polymorphic approach as poor old Java clients can use default parameters yet

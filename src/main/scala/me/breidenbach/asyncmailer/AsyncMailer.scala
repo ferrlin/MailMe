@@ -22,6 +22,7 @@ object AsyncMailer extends Starter {
       sendEmail("b@gmail.com")
       sendEmail("c@gmail.com")
       sendEmail("d@gmail.com", async = false)
+      MailerSupervisor.stop()
     } catch {
       case e:MailerException =>
         logger.error(s"Error Sending Email: ${e.message}")

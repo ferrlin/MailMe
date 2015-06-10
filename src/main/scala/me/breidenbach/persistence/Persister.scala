@@ -28,7 +28,6 @@ class Persister(id: String) extends PersistentActor with ActorLogging {
   import Persister._
 
   private var state = State()
-  private var lastMetadata: SnapshotMetadata = SnapshotMetadata(id, 0L, 0L)
   context.system.scheduler.schedule(1 minute, 1 minute, self, SnapshotNow)
 
   override def receiveRecover: Receive = {
@@ -40,14 +39,11 @@ class Persister(id: String) extends PersistentActor with ActorLogging {
       log.debug(s"persister recovering remove received with seq: ${remove.seq}")
     case SnapshotOffer(lastSequence, snapshot: State) =>
       state = snapshot
-      lastMetadata = SnapshotMetadata(id, lastSequenceNr, 0L)
-      context.parent ! State(state.state)
       log.debug(s"persister recovering snapshot received with ${state.state.size} messages")
     case RecoveryCompleted =>
-      if (state.state.isEmpty) cleanUp(lastMetadata)
+      if (state.state.isEmpty) cleanUp() else context.parent ! State(state.state)
       log.debug("recovery completed... starting up")
     case RecoveryFailure =>
-      cleanUp(SnapshotMetadata(id, Long.MaxValue, 0L))
       log.error("error recovering, cleaning up")
   }
 
@@ -61,36 +57,33 @@ class Persister(id: String) extends PersistentActor with ActorLogging {
     case remove: Remove =>
       persist(remove) { r =>
         state = state.removeState(r.seq)
-        if (state.state.isEmpty) cleanUp(lastMetadata)
+        if (state.state.isEmpty) cleanUp()
         log.debug(s"removing seq: ${r.seq}")
       }
     case Recover =>
       sender ! State(state.state)
       log.debug(s"recover requested and snapshot sent")
     case SnapshotNow =>
-      if (state.state.isEmpty) cleanUp(lastMetadata) else saveSnapshot(state)
+      if (state.state.isEmpty) cleanUp() else saveSnapshot(state)
       log.debug("snapshot completed")
     case SaveSnapshotSuccess(metadata) =>
-      lastMetadata = metadata
-      deleteMessages(toSequenceNr = lastMetadata.sequenceNr, permanent = true)
-      log.debug(s"snapshot successful, deleting journal upto snapshot sequence number ${lastMetadata.sequenceNr}")
+      deleteMessages(toSequenceNr = lastSequenceNr, permanent = true)
+      log.debug(s"snapshot successful, deleting journal upto snapshot sequence number $lastSequenceNr")
   }
 
   override def persistenceId: String = id
 
   override def postStop(): Unit = {
     log.info("PERSISTER HAS SHUT DOWN. CLEANING UP IF NECESSARY")
-    if (state.state.isEmpty) cleanUp(lastMetadata)
+    if (state.state.isEmpty) cleanUp()
   }
 
-  private def cleanUp(metadata: SnapshotMetadata): Unit = {
-    if (metadata != null) removeSnapshots(metadata.sequenceNr, maxTimestamp = metadata.timestamp)
-  }
+  private def cleanUp(): Unit = {
+    val criteria: SnapshotSelectionCriteria = SnapshotSelectionCriteria(maxSequenceNr = lastSequenceNr)
+    deleteMessages(toSequenceNr = lastSequenceNr, permanent = true)
+    log.debug(s"removing messages up to seq: $lastSequenceNr")
 
-  private def removeSnapshots(lastSequenceNumber: Long, maxTimestamp: Long): Unit = {
-    val criteria: SnapshotSelectionCriteria = SnapshotSelectionCriteria(maxSequenceNr = lastSequenceNumber)
-    deleteMessages(toSequenceNr = lastSequenceNumber, permanent = true)
     deleteSnapshots(criteria)
-    log.debug(s"removing snapshots up to seq: $lastSequenceNumber, and timestamp: $maxTimestamp")
+    log.debug(s"removing snapshots up to seq: $lastSequenceNr")
   }
 }

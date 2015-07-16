@@ -13,6 +13,15 @@ object Html5 extends in.ferrl.util.Html5Writer
 object eMailer {
   import eMailer._
 
+  lazy val properties: Properties = {
+    val p = System.getProperties.clone.asInstanceOf[Properties]
+    /*Props.props.foreach {
+      case (name: String, value: String) =>
+        p.setProperty(name, value)
+    }*/
+    p
+  }
+
   lazy val charSet = properties.getProperty("mail.charset") match {
     case null => "UTF-8"
     case x => x
@@ -148,15 +157,6 @@ object eMailer {
 class eMailer(name: String) extends Actor with ActorLogging {
   import eMailer._
 
-  lazy val properties: Properties = {
-    val p = System.getProperties.clone.asInstanceOf[Properties]
-    Props.props.foreach {
-      case (name: String, value: String) =>
-        p.setProperty(name, value)
-    }
-    p
-  }
-
   override def receive = {
     case MessageInfo(from, subject, rest) =>
       try {
@@ -191,6 +191,7 @@ class eMailer(name: String) extends Actor with ActorLogging {
     val session = Session.getInstance(buildProps)
     val subj = MimeUtility.encodeText(subject.value, "utf-8", "Q")
 
-    Mailer.this.performTransportSend(prepareMessage(session, from, subject, info))
+    // Mailer.this.performTransportSend(prepareMessage(session, from, subject, info))
+    Transport.send(prepareMessage(session, from, subject, info))
   }
 }

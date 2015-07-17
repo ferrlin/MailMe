@@ -63,24 +63,20 @@ object eMailer {
     val message = new MimeMessage(session)
 
     message.setFrom(new InternetAddress(from.address))
-    /*message.setRecipients(Message.RecipientType.TO, info.flatMap {
-      // case x: To => Some[To](x)
-      case x: To => Some[InternetAddress](new InternetAddress(x.address))
+    message.setRecipients(Message.RecipientType.TO, info.flatMap {
+      case x: To => Some[Address](new InternetAddress(x.address))
       case _ => None
     }.toArray)
     message.setRecipients(Message.RecipientType.CC, info.flatMap {
-      // case x: CC => Some[CC](x)
-      case x: CC => Some[InternetAddress](new InternetAddress(x.address))
+      case x: CC => Some[Address](new InternetAddress(x.address))
       case _ => None
     }.toArray)
     message.setRecipients(Message.RecipientType.BCC, info.flatMap {
-      // case x: BCC => Some[BCC](x)
-      case x: BCC => Some[InternetAddress](new InternetAddress(x.address))
+      case x: BCC => Some[Address](new InternetAddress(x.address))
       case _ => None
-    }.toArray)*/
+    }.toArray)
     message.setSentDate(new java.util.Date())
     message.setReplyTo(info.flatMap {
-      // case x: ReplyTo => Some[ReplyTo](x)
       case x: ReplyTo => Some[InternetAddress](new InternetAddress(x.address))
       case _ => None
     }.toArray)
@@ -192,6 +188,9 @@ class eMailer(name: String) extends Actor with ActorLogging {
     val subj = MimeUtility.encodeText(subject.value, "utf-8", "Q")
 
     // Mailer.this.performTransportSend(prepareMessage(session, from, subject, info))
-    Transport.send(prepareMessage(session, from, subject, info))
+    Transport.send(prepareMessage(session, from, subject, info), "<<username>>", "<<password>>")
+    // val transport = session.getTransport("smtps")
+    // transport.connect("", "", "")
+    // transport.sendMessage(prepareMessage(session, from, subject, info))
   }
 }

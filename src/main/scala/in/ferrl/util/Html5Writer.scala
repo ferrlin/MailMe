@@ -221,16 +221,16 @@ trait Html5Writer {
           case null =>
           case seq => seq.foreach {
             case Text(str) => writer.append(str)
-            case pc: PCData => {
-              val sb = new StringBuilder()
-              pc.buildString(sb)
-              writer.append(sb)
-            }
             case pc: scala.xml.PCData => {
               val sb = new StringBuilder()
               pc.buildString(sb)
               writer.append(sb)
             }
+            // case pc: PCData => {
+            // val sb = new StringBuilder()
+            // pc.buildString(sb)
+            // writer.append(sb)
+            // }
             case Unparsed(text) => writer.append(text)
             case a: Atom[_] if a.getClass eq classOf[Atom[_]] =>
               writer.append(a.data.toString)

@@ -6,6 +6,10 @@ import akka.pattern.ask
 import scala.concurrent.Await
 import akka.util.Timeout
 
+case class Status(started: Boolean = false) {
+  def toggle: Status = Status(!started)
+}
+
 object PostOffice {
 
   import scala.concurrent._
@@ -17,22 +21,29 @@ object PostOffice {
 
   val system = ActorSystem("mail-system")
   var postOffice: ActorRef = _
+  var status: Status = Status()
 
-  def init(mailerCount: Int, waitTimeout: FiniteDuration): ActorRef = {
-    postOffice = system.actorOf(Props(new PostOffice(mailerCount)), "post-office")
-    postOffice
+  def init(mailerCount: Int, waitTimeout: FiniteDuration) {
+    if (!status.started)
+      postOffice = system.actorOf(Props(new PostOffice(mailerCount)), "post-office")
   }
 
   def stop() {
-    system.shutdown()
+    if (status.started) {
+      system.shutdown()
+      status.toggle
+    }
   }
 
-  def sendEmail(from: From, subject: Subject, rest: MailTypes*) {
-    Await.result(postOffice ? MessageInfo(from, subject, rest.toList), 1 second)
-  }
-
-  def sendEmailAsync(from: From, subject: Subject, rest: MailTypes*) {
-    postOffice ! MessageInfo(from, subject, rest.toList)
+  def sendMail(from: From, subject: Subject, rest: MailTypes*)(async: Boolean = false) {
+    if (status.started) {
+      if (!async) {
+        Await.result(postOffice ? MessageInfo(from, subject, rest.toList), 1 second)
+      } else {
+        postOffice ! MessageInfo(from, subject, rest.toList)
+      }
+    } else
+      throw new Error("Post office is not initialized")
   }
 }
 

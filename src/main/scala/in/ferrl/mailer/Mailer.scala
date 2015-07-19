@@ -167,6 +167,8 @@ class eMailer(name: String) extends Actor with ActorLogging {
 
   def host = hostFunc()
 
+  var authenticator: Option[Authenticator] = None
+
   var hostFunc: () => String = _host _
 
   private def _host = properties.getProperty("mail.smtp.host") match {
@@ -184,13 +186,12 @@ class eMailer(name: String) extends Actor with ActorLogging {
   }
 
   def sendEmail(from: From, subject: Subject, info: List[MailTypes]) {
-    val session = Session.getInstance(buildProps)
-    val subj = MimeUtility.encodeText(subject.value, "utf-8", "Q")
 
-    // Mailer.this.performTransportSend(prepareMessage(session, from, subject, info))
-    Transport.send(prepareMessage(session, from, subject, info), "<<username>>", "<<password>>")
-    // val transport = session.getTransport("smtps")
-    // transport.connect("", "", "")
-    // transport.sendMessage(prepareMessage(session, from, subject, info))
+    val session = authenticator match {
+      case Some(a) => Session.getInstance(buildProps, a)
+      case None => Session.getInstance(buildProps)
+    }
+    val subj = MimeUtility.encodeText(subject.value, "utf-8", "Q")
+    Transport.send(prepareMessage(session, from, subject, info))
   }
 }

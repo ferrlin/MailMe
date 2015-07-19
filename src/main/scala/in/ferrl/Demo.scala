@@ -3,6 +3,7 @@ package in.ferrl
 object Demo extends App {
 
   import in.ferrl.mailer._
+  import scala.concurrent
   import scala.concurrent.duration._
 
   PostOffice.init(1, 1.second)

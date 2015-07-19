@@ -5,6 +5,7 @@ import javax.mail.internet._
 import javax.naming.{ Context, InitialContext }
 import scala.xml.{ NodeSeq, Node, Elem, Text }
 import java.util.Properties
+import com.typesafe.config._
 
 import akka.actor.{ Actor, ActorLogging, Props }
 
@@ -15,10 +16,9 @@ object eMailer {
 
   lazy val properties: Properties = {
     val p = System.getProperties.clone.asInstanceOf[Properties]
-    /*Props.props.foreach {
-      case (name: String, value: String) =>
-        p.setProperty(name, value)
-    }*/
+    val config: Config = ConfigFactory.load()
+    // val obj: ConfigObject = config.root
+    // p.putAll(obj.unwrapped)
     p
   }
 
@@ -101,7 +101,7 @@ object eMailer {
         message.setContent(multiPart)
     }
 
-    // 
+    // Return the message
     message
   }
 
@@ -179,7 +179,9 @@ class eMailer(name: String) extends Actor with ActorLogging {
   def buildProps: Properties = {
     val p = properties.clone.asInstanceOf[Properties]
     p.getProperty("mail.smtp.host") match {
-      case null => p.put("mail.smtp.host", host)
+      case null =>
+        p.put("mail.smtp.host", host)
+        p.put("mail.smtp.port", "1025")
       case _ =>
     }
     p

@@ -24,14 +24,16 @@ object PostOffice {
   var status: Status = Status()
 
   def init(mailerCount: Int, waitTimeout: FiniteDuration) {
-    if (!status.started)
+    if (!status.started) {
       postOffice = system.actorOf(Props(new PostOffice(mailerCount)), "post-office")
+      status = status.toggle
+    }
   }
 
   def stop() {
     if (status.started) {
       system.shutdown()
-      status.toggle
+      status = status.toggle
     }
   }
 

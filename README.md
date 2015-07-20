@@ -45,3 +45,4 @@ Async will return as soon as the request is sent, which is most cases is suffici
 If the persister fails before it receives the message, it will automatically be restarted through the Akka supervision system. Additionally, before sending the message to the persister the `MailerSupervisor` caches it and every 100ms resends any cached requests to the persister. When a `Persisted` message is sent from the persister and is received by the mailer supervisor it is removed from the cache.
 
 
+# MailMe

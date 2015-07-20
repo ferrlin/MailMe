@@ -14,11 +14,16 @@ object Html5 extends in.ferrl.util.Html5Writer
 object eMailer {
   import eMailer._
 
+  val SMTP_HOST_KEY = "mail.smtp.host"
+  val SMTP_PORT_KEY = "mail.smtp.port"
+
   lazy val properties: Properties = {
     val p = System.getProperties.clone.asInstanceOf[Properties]
     val config: Config = ConfigFactory.load()
-    // val obj: ConfigObject = config.root
-    // p.putAll(obj.unwrapped)
+    val host: String = config.getString(SMTP_HOST_KEY)
+    val port: String = config.getString(SMTP_PORT_KEY)
+    p.put(SMTP_HOST_KEY, host)
+    p.put(SMTP_PORT_KEY, port)
     p
   }
 
@@ -181,7 +186,6 @@ class eMailer(name: String) extends Actor with ActorLogging {
     p.getProperty("mail.smtp.host") match {
       case null =>
         p.put("mail.smtp.host", host)
-        p.put("mail.smtp.port", "1025")
       case _ =>
     }
     p

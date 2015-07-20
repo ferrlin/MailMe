@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster" % "2.3.12",
   "org.slf4j" % "slf4j-api" % "1.7.12",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
-  "javax.mail" % "mail" % "1.5.0-b01",
+  "javax.mail" % "mail" % "1.5.0-b01")
 
 libraryDependencies := {
   CrossVersion.partialVersion(scalaVersion.value) match {

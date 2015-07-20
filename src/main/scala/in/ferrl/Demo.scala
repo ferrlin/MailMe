@@ -1,6 +1,6 @@
 package in.ferrl
 
-object Demo extends App {
+object BasicDemo extends App {
 
   import in.ferrl.mailer._
   import scala.concurrent
@@ -13,4 +13,6 @@ object Demo extends App {
     Subject(value = "This is  test email"),
     To("recipient@nowhere.com"),
     PlainMailBodyType("Here is some plain text."))(async = true)
+
+  PostOffice.stop()
 }

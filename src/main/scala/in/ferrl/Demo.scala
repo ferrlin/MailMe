@@ -12,7 +12,7 @@ object BasicDemo extends App {
     From(address = "test@test.com"),
     Subject(value = "This is  test email"),
     To("recipient@nowhere.com"),
-    PlainMailBodyType("Here is some plain text."))(async = true)
+    PlainMailBodyType("Here is some plain text."))
 
   PostOffice.stop()
 }

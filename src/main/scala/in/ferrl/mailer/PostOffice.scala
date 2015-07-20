@@ -37,7 +37,7 @@ object PostOffice {
     }
   }
 
-  def sendMail(from: From, subject: Subject, rest: MailTypes*)(async: Boolean = false) {
+  def sendMail(from: From, subject: Subject, rest: MailTypes*)(implicit async: Boolean = true) {
     if (status.started) {
       if (!async) {
         Await.result(postOffice ? MessageInfo(from, subject, rest.toList), 1 second)

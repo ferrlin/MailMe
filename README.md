@@ -1,48 +1,55 @@
-# Async Mailer
+# MailMe
 
-A simple example showing asynchronous mailing with persistent backup
+A simple smtp client built with scala and akka using java mail 1.5.
+
+## Requirements
+
+    This assumes that your are using:
+
+    - jdk8
+    - scala 2.11.x
+
+    You would also need a smtp server. For debugging purposes, I would recommend installing `mocksmtp`. You can find it [here][1].
+    In the application.conf, I've added the configurations with their defaults: 
+
+    mail.smtp.host = "localhost"
+    mail.smtp.port = 1025
+
+    These are the defaults when you start `mocksmtp`. Update these configurations to suit your needs.
 
 ## Structure
 
-There are three main files that are given
-- `persistence/Persister.scala`
-- `asyncmailer/Emailer.scala`
-- `asyncmailer/MailerSupervisor.scala`
+There are two main files defined here. These are:
+- `mailer/Mailer.scala` 
+- `mailer/PostOffice.scala`
 
-Additionally there is a wrapper which allows Spring based systems to pull in this component as a @Bean
-- `asyncmailer/MailSupervisorControl.scala`
 
-Lastly there is a simple main object which I've used for testing in lieu of AkkaTests (which I will add soon)
-- `asyncmailer/AsyncMailer.scala`
+Lastly there are demos which I've used for testing in lieu of AkkaTests (which  will be  added soon)
+- `Demo.scala`
+- `BulkEmailDemo.scala`
 
 
 ## Using the library
 
-The methods in the `MailerSupervisor` object, or the `MailSupervisorControl.scala` class (if you're accessing through Spring) has the methods used to control the system:
+The class PostOffice has the methods for controlling the system. To use the library, you need to initialize the PostOffice by calling the `init` and  passing the mailer(routee) count and timeout duration as parameters.
 
-- `start(mailCount: Int, waitTimeout: FiniteDuration)`
-will start the Akka system.
-`mailCount` is the number of mailers you wish to have. One is sufficient for most systems, but for high load make this larger.
-`waitTimeout` is for is you decide to send mail synchronously (see below) and is the timeout for waiting for a response
+- `init(mailerCount: Int, timeout: FiniteDuration)` - is the full signature of the init method. Bypassing this call will throw Error whenenver you are using the api. 
 
-- `stop()`
-will stop the emailer and it will need to be restarted with the start method before sending any more emails
+The api for sending mail is :
 
-- `isStarted`
-will let you know if the service is running
+- `sendMail(from: From, subject: Subject, rest: MailTypes*)(implicit async = true)`  - By default, you are sending mail asynchronously provided by the akka framework. 
 
-- `sendEmail(emailAddress: String, async: Boolean)`
-is used to send an email.
-`emailAddress` is obvious
-`async` should be obvious. If going through the `MailerSupervisor` object then this has a default value of `true` and can be ignored unless you want sychronous responses. If you are using the `MailSupervisorControl.scala` then there are polymorphic methods which is useful for Java clients
+If for some reason you want it synchrounously, you need to set `async=false`.
 
-## Synchronous Behavior
+To be able to use this effectively, one must understand the data types used for constructing the message.
+    `From(address: String, name: Option[String])` - is to represent the sender of the mail.
 
-The library offers a synchronous behavior. This does not mean that the service has sent the email, just that it has persisted the email request, which guarantees it will be sent at some point int he future.
+    `Subject(value: String)` - the subject of the mail to be sent.
 
-Async will return as soon as the request is sent, which is most cases is sufficient.
+    `MailTypes*` - this can be any of the following that extends Mailtypes. Refer to the the file package.scala under in/ferrl directory.
 
-If the persister fails before it receives the message, it will automatically be restarted through the Akka supervision system. Additionally, before sending the message to the persister the `MailerSupervisor` caches it and every 100ms resends any cached requests to the persister. When a `Persisted` message is sent from the persister and is received by the mailer supervisor it is removed from the cache.
+    An example on how to construct and send a mail can be found in either of the demo classes as described above.
 
+- `stop()` - for stopping the ActorSystem created after initialization.
 
-# MailMe
+[1]: http://www.mocksmtpapp.com/

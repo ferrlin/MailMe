@@ -1,4 +1,5 @@
 package in.ferrl
+
 import xml.{ Text, Elem, Node, NodeSeq }
 
 package object mailer {

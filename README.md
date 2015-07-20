@@ -8,6 +8,7 @@ A simple smtp client built with scala and akka using java mail 1.5.
 
     - jdk8
     - scala 2.11.x
+    - sbt 0.13.x
 
     You would also need a smtp server. For debugging purposes, I would recommend installing `mocksmtp`. You can find it [here][1].
     In the application.conf, I've added the configurations with their defaults: 
@@ -27,6 +28,8 @@ There are two main files defined here. These are:
 Lastly there are demos which I've used for testing in lieu of AkkaTests (which  will be  added soon)
 - `Demo.scala`
 - `BulkEmailDemo.scala`
+
+To try out the demos, simply do `sbt run` then select which above to execute.
 
 
 ## Using the library
